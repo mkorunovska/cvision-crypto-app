@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import Search from "./Search"
-import Range from "./Range";
-import CandleChart from "./CandleChart";
+import Search from "./Search.jsx"
+import Range from "./Range.jsx";
+import CandleChart from "./CandleChart.jsx";
 
 function DetailsPage() {
   const [query, setQuery] = useState("");

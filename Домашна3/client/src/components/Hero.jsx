@@ -4,15 +4,19 @@ import { IoIosArrowDroprightCircle } from "react-icons/io";
 import { useNavigate } from 'react-router-dom';
 
 const Hero = () => {
-  const nav=useNavigate()
-  const navigate= ()=>{nav("/details")}
+  const navigate = useNavigate();
+
+  const goToDetails = () => {
+    navigate("/details");
+  };
+
   return (
-    <section>
+    <section className="section">
       <div className='container mx-auto'>
         <div className="flex flex-col items-center lg:flex-row">
           <div className="flex-1">
             <h1 className='text-[32px] lg:text-[64px]
-            font-bold leading tight mb-6 mt-6' 
+            font-bold leading-tight mb-6 mt-6' 
             data-aos='fade-down'
             data-aos-delay='500'>
               Data Driven Predictions & Insights - the platform to invest in crypto. 
@@ -22,7 +26,7 @@ const Hero = () => {
               Powered by real market data and intelligent forecasting models,
               see the latest trends in the crypto world.
             </p>
-            <button onClick={navigate} className='btn gap-x-4 pl-6 text-sm lg:text-base hover:bg-white' data-aos='fade-down'
+            <button onClick={goToDetails} className='btn gap-x-4 pl-6 text-sm lg:text-base hover:bg-white' data-aos='fade-down'
             data-aos-delay='700' >
               Try for free
               <IoIosArrowDroprightCircle className="text-2xl"/>
@@ -38,3 +42,4 @@ const Hero = () => {
 };
 
 export default Hero;
+

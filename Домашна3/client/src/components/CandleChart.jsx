@@ -1,5 +1,5 @@
 import React from "react";
-import CandleTooltip from "./CandleToolTip"
+import CandleTooltip from "./CandleToolTip.jsx"
 import { ResponsiveContainer, ComposedChart, CartesianGrid, XAxis, YAxis, Tooltip, Bar,} from "recharts";
 
 function CandleChart({ visibleData, loading }) {

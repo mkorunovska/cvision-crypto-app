@@ -1,6 +1,6 @@
 import React from "react";
 
-import NewsletterForm from "../components/NewsletterForm";
+import NewsletterForm from "./NewsletterForm.jsx";
 
 const Newsletter = () => {
   return (

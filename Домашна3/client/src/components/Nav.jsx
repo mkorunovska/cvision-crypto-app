@@ -1,6 +1,7 @@
 import React from "react";
 
-import { navData } from "../data";
+import { navData } from "../data.js";
+import { Link } from "react-router-dom";
 
 const Nav = () => {
   return (
@@ -9,7 +10,8 @@ const Nav = () => {
         {navData.map((item, index) => {
           return (
             <li className='border-b-2 border-transparent hover:border-white transition-all' key={index}>
-              <a href={item.href}>{item.name} </a>
+              {/* <a href={item.href}>{item.name} </a> */}
+              <Link to={item.href}>{item.name}</Link>
             </li>
           );
         })}
@@ -19,3 +21,5 @@ const Nav = () => {
 };
 
 export default Nav;
+
+
