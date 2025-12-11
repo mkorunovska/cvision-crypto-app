@@ -24,12 +24,6 @@ public class DailyDataController {
         this.dailyDataService = dailyDataService;
     }
 
-//    @GetMapping(value = "/all")
-//    public ResponseEntity<List<DailyData>> getAllDailyData() {
-//        List<DailyData> dailyData = dailyDataService.findAll();
-//        return new ResponseEntity<>(dailyData, HttpStatus.OK);
-//    }
-
     @GetMapping("/all")
     public ResponseEntity<Page<DailyData>> getAllPaged(
             @RequestParam(defaultValue = "0") int page,

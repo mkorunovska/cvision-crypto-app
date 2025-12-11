@@ -61,7 +61,7 @@ function DetailsPage() {
 
     const n = parseInt(range, 10); 
     if (!ohlc || ohlc.length <= n) return ohlc;
-    return ohlc.slice(ohlc.length - n); // last n points
+    return ohlc.slice(ohlc.length - n); 
   };
 
   const visibleData = getVisibleData();

@@ -12,7 +12,6 @@ public interface DailyDataService {
 
     Page<DailyData> findPage(int page, int size);
 
-    //List<DailyData> getLatestForCrypto(String cryptoId, int limit);
     List<DailyData> getLatestForCrypto(String cryptoId);
 
 }

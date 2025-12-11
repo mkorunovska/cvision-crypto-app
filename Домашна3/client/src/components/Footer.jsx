@@ -31,13 +31,18 @@ const Footer = () => {
                   </Link>
                 </li>
                 <li>
-                  <Link className="hover:text-blue/50" to="/about">
-                    About
+                  <Link className="hover:text-blue/50" to="/technical">
+                    Technical Analysis
                   </Link>
                 </li>
                 <li>
-                  <Link className="hover:text-blue/50" to="/contact">
-                    Contact
+                  <Link className="hover:text-blue/50" to="/lstm">
+                    LSTM
+                  </Link>
+                </li>
+                <li>
+                  <Link className="hover:text-blue/50" to="/sentiment">
+                    Sentiment Analysis
                   </Link>
                 </li>
               </ul>

@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Entity
 @NoArgsConstructor
+@AllArgsConstructor
 @Table(name="cryptocurrencies")
 public class Cryptocurrency {
     @Id

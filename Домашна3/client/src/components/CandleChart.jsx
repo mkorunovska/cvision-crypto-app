@@ -6,7 +6,7 @@ function CandleChart({ visibleData, loading }) {
 
   const Candle = (props) => {
     const { x, width, payload } = props;
-    const { open, close, high, low } = payload;
+    const { open, close, high, low} = payload;
 
     const color = close >= open ? "#1a6636ff" : "#9e3434ff";
     const center = x + width / 2;

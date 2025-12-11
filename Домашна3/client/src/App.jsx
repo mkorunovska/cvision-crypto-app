@@ -51,7 +51,7 @@ const App = () => {
             </>
           }
         />
-        <Route path="/about" element={<About />} />
+        <Route path="/technical" element={<About />} />
       </Routes>
        <Footer />
     </div>

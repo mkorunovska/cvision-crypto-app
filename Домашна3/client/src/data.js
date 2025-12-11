@@ -8,12 +8,16 @@ export const navData = [
     href: '/details',
   },
   {
-    name: 'About',
-    href: '/about',
+    name: 'Technical Analysis',
+    href: '/technical',
   },
   {
-    name: 'Contact',
-    href: '#',
+    name: 'LSTM',
+    href: '/lstm',
+  },
+  {
+    name: 'Sentiment Analysis',
+    href: '/sentiment',
   },
 ];
 
