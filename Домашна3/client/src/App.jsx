@@ -7,10 +7,11 @@ import NavMobile from "./components/NavMobile.jsx";
 import Newsletter from "./components/Newsletter.jsx";
 import Footer from "./components/Footer.jsx";
 import DetailsPage from "./components/DetailsPage.jsx";
-import About from "./components/About.jsx";
+import TechnicalAnalysis from "./components/TechnicalAnalysis.jsx";
 
 import Aos from "aos";
 import "aos/dist/aos.css";
+import TechnicalAnalysisPage from "./components/TechnicalAnalysis.jsx";
 
 const App = () => {
   const [navMobile, setNavMobile] = useState(false);
@@ -51,7 +52,7 @@ const App = () => {
             </>
           }
         />
-        <Route path="/technical" element={<About />} />
+        <Route path="/technical" element={<TechnicalAnalysis />} />
       </Routes>
        <Footer />
     </div>
