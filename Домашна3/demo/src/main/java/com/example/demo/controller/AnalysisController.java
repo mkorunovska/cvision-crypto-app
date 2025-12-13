@@ -33,4 +33,19 @@ public class AnalysisController {
                     .build();
         }
     }
+
+    
+    @GetMapping("/lstm")
+    public ResponseEntity<?> getLstmAnalysis(@RequestParam String cryptoId) {
+        String url = "http://localhost:8001/lstm_analysis/" + cryptoId;
+
+        try {
+            Object body = restTemplate.getForObject(url, Object.class);
+            return ResponseEntity.ok(body);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
+    }
 }
