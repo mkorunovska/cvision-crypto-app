@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import CryptoSearchBar from "./CryptoSearchBar.jsx";
+import { getToken } from "../auth";
+
 
 const TechnicalAnalysis = () => {
   const [query, setQuery] = useState("");
@@ -34,7 +36,7 @@ const TechnicalAnalysis = () => {
     setError("");
   };
 
-  const handleGetAnalysis = (e) => {
+  const handleGetAnalysis = async (e) => {
     e.preventDefault();
     setError("");
     setAnalysis(null);
@@ -43,18 +45,39 @@ const TechnicalAnalysis = () => {
       setError("Please select a cryptocurrency.");
       return;
     }
+    const token = getToken();
+    if (!token) {
+      setError("You are not logged in. Please login again.");
+      return;
+    }
+
     setLoading(true);
 
     const url = `http://localhost:8000/api/analysis?cryptoId=${selectedCryptoId}&period=${period}`;
 
-    fetch(url)
-      .then(async (response) => {
-        if (!response.ok) throw new Error(await response.text());
-        return response.json();
-      })
-      .then((data) => setAnalysis(data))
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
+    try {
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const msg = await response.text();
+        throw new Error(msg || `Request failed (${response.status})`);
+      }
+
+      const data = await response.json();
+      setAnalysis(data);
+    }catch(err){
+      if (String(err.message).includes("401")) {
+        setError("Session expired. Please login again.");
+      } else {
+        setError(err.message);
+      }
+    }finally{
+      setLoading(false);
+    }
   };
 
   const renderIndicators = () => {

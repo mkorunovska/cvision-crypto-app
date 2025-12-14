@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import CryptoSearchBar from "./CryptoSearchBar.jsx"
+import CryptoSearchBar from "./CryptoSearchBar.jsx";
 import Range from "./Range.jsx";
 import CandleChart from "./CandleChart.jsx";
+import { getToken } from "../auth.js";
 
 function DetailsPage() {
   const [query, setQuery] = useState("");
@@ -39,7 +40,25 @@ function DetailsPage() {
 
   const loadOhlc = async (cryptoId) => {
     setLoading(true);
-    const res = await fetch(`http://localhost:8000/api/data/daily/${cryptoId}`);
+    const token = getToken();
+    if (!token) {
+      throw new Error("Not logged in. Please login again.");
+    }
+
+    const res = await fetch(
+      `http://localhost:8000/api/data/daily/${cryptoId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!res.ok) {
+      setLoading(false);
+      throw new Error(`Failed to load OHLC (${res.status})`);
+    }
+    
     const data = await res.json();
 
     const mapped = data.map((d) => ({
@@ -59,15 +78,18 @@ function DetailsPage() {
   const getVisibleData = () => {
     if (range === "ALL") return ohlc;
 
-    const n = parseInt(range, 10); 
+    const n = parseInt(range, 10);
     if (!ohlc || ohlc.length <= n) return ohlc;
-    return ohlc.slice(ohlc.length - n); 
+    return ohlc.slice(ohlc.length - n);
   };
 
   const visibleData = getVisibleData();
 
   return (
-    <div className="p-20 maxWidth:900 m-auto" data-aos='fade-up' data-aos-delay='600' 
+    <div
+      className="p-20 maxWidth:900 m-auto"
+      data-aos="fade-up"
+      data-aos-delay="600"
     >
       <CryptoSearchBar
         query={query}

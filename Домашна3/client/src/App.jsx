@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
+import ProtectedRoute from "./ProtectedRoute.jsx";
 
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import Hero from "./components/Hero.jsx";
 import Header from "./components/Header.jsx";
 import NavMobile from "./components/NavMobile.jsx";
@@ -9,6 +10,8 @@ import Footer from "./components/Footer.jsx";
 import DetailsPage from "./components/DetailsPage.jsx";
 import LstmAnalysis from "./components/LstmAnalysis.jsx";
 import TechnicalAnalysis from "./components/TechnicalAnalysis.jsx";
+import Login from "./components/Login.jsx";
+import Register from "./components/Register.jsx";
 
 import Aos from "aos";
 import "aos/dist/aos.css";
@@ -23,16 +26,27 @@ const App = () => {
     });
   });
 
+  const location = useLocation();
+
+  const isAuthPage =
+  location.pathname === "/login" ||
+  location.pathname === "/register";
+
   return (
     <div className="overflow-hidden bg-darkblue text-white min-h-screen">
-      <Header setNavMobile={setNavMobile} />
-      <div
-        className={`${
-          navMobile ? "right-0" : "-right-full"
-        } fixed top-0 h-full transition-all duration-200 z-50`}
-      >
-        <NavMobile setNavMobile={setNavMobile} />
-      </div>
+
+      {!isAuthPage && (
+      <>
+        <Header setNavMobile={setNavMobile} />
+        <div
+          className={`${
+            navMobile ? "right-0" : "-right-full"
+          } fixed top-0 h-full transition-all duration-200 z-50`}
+        >
+          <NavMobile setNavMobile={setNavMobile} />
+        </div>
+      </>
+    )}
 
       <Routes>
         <Route
@@ -44,19 +58,37 @@ const App = () => {
             </>
           }
         />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
         <Route
           path="/details"
           element={
             <>
+            <ProtectedRoute>
               <DetailsPage />
+            </ProtectedRoute>
             </>
           }
         />
-        <Route path="/technical" element={<TechnicalAnalysis />} />
-        <Route path="/lstm" element={<LstmAnalysis />} />
-
+        <Route path="/technical" element={
+          <>
+            <ProtectedRoute>
+              <TechnicalAnalysis />
+            </ProtectedRoute>
+          </>
+          } 
+        />
+        <Route path="/lstm" element={
+          <>
+            <ProtectedRoute>
+              <LstmAnalysis />
+            </ProtectedRoute>
+          </>
+          } 
+        />
       </Routes>
-       <Footer />
+      
+      {!isAuthPage && <Footer />}
     </div>
   );
 };

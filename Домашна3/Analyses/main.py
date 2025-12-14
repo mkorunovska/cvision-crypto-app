@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 
 from TechnicalAnalysis.technical_analysis import analyze_crypto, get_all_crypto_ids
+from LSTM.lstm_analysis import predictor_ohlcv
 
 app = FastAPI()
 
