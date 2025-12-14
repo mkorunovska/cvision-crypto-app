@@ -7,15 +7,11 @@ import NavMobile from "./components/NavMobile.jsx";
 import Newsletter from "./components/Newsletter.jsx";
 import Footer from "./components/Footer.jsx";
 import DetailsPage from "./components/DetailsPage.jsx";
-<<<<<<< Updated upstream
-=======
 import LstmAnalysis from "./components/LstmAnalysis.jsx";
->>>>>>> Stashed changes
 import TechnicalAnalysis from "./components/TechnicalAnalysis.jsx";
 
 import Aos from "aos";
 import "aos/dist/aos.css";
-import TechnicalAnalysisPage from "./components/TechnicalAnalysis.jsx";
 
 const App = () => {
   const [navMobile, setNavMobile] = useState(false);
@@ -57,10 +53,8 @@ const App = () => {
           }
         />
         <Route path="/technical" element={<TechnicalAnalysis />} />
-<<<<<<< Updated upstream
-=======
         <Route path="/lstm" element={<LstmAnalysis />} />
->>>>>>> Stashed changes
+
       </Routes>
        <Footer />
     </div>
