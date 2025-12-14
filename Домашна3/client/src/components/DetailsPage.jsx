@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Search from "./Search.jsx"
+import CryptoSearchBar from "./CryptoSearchBar.jsx"
 import Range from "./Range.jsx";
 import CandleChart from "./CandleChart.jsx";
 
@@ -69,7 +69,7 @@ function DetailsPage() {
   return (
     <div className="p-20 maxWidth:900 m-auto" data-aos='fade-up' data-aos-delay='600' 
     >
-      <Search
+      <CryptoSearchBar
         query={query}
         searchResults={searchResults}
         onSearchChange={handleSearch}

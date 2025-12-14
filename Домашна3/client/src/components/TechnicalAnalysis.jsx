@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import CryptoSearchBar from "./CryptoSearchBar.jsx";
 
-const TechnicalAnalysisPage = () => {
+const TechnicalAnalysis = () => {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [selectedCryptoId, setSelectedCryptoId] = useState("");
@@ -130,4 +130,4 @@ const TechnicalAnalysisPage = () => {
   );
 };
 
-export default TechnicalAnalysisPage;
+export default TechnicalAnalysis;
