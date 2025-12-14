@@ -1,133 +1,168 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import CryptoSearchBar from "./CryptoSearchBar.jsx";
+import Range from "./Range.jsx";
+import CandleChart from "./CandleChart.jsx";
 
-const TechnicalAnalysisPage = () => {
+function LstmAnalysis() {
     const [query, setQuery] = useState("");
-    const [results, setResults] = useState([]);
-    const [selectedCryptoId, setSelectedCryptoId] = useState("");
+    const [searchResults, setSearchResults] = useState([]);
+    const [selectedCrypto, setSelectedCrypto] = useState(null);
 
-    const [period, setPeriod] = useState("day");
-    const [analysis, setAnalysis] = useState(null);
+
+    const [ohlc, setOhlc] = useState([]);
+
+
+    const [forecast, setForecast] = useState([]);
+    const [evaluation, setEvaluation] = useState(null);
+    const [lookback, setLookback] = useState(30);
+    const [horizon, setHorizon] = useState(7);
+
     const [loading, setLoading] = useState(false);
+    const [range, setRange] = useState("ALL");
     const [error, setError] = useState("");
 
-    const handleSearchChange = (e) => {
-        const q = e.target.value;
-        setQuery(q);
-        setAnalysis(null);
+    const handleSearch = async (e) => {
+        const value = e.target.value;
+        setQuery(value);
 
-        if (q.trim().length < 2) {
-            setResults([]);
+        if (value.length < 2) {
+            setSearchResults([]);
             return;
         }
 
-        fetch(`http://localhost:8000/api/crypto/search?query=${q}`)
-            .then((res) => res.json())
-            .then((data) => setResults(data))
-            .catch(() => setError("Error searching cryptocurrencies"));
-    };
-
-    const handleSelectCrypto = (crypto) => {
-        setSelectedCryptoId(crypto.id);
-        setQuery(crypto.name);
-        setResults([]);
-        setError("");
-    };
-
-    const handleGetAnalysis = (e) => {
-        e.preventDefault();
-        setError("");
-        setAnalysis(null);
-
-        if (!selectedCryptoId) {
-            setError("Please select a cryptocurrency.");
-            return;
+        try {
+            const res = await fetch(
+                `http://localhost:8000/api/crypto/search?query=${encodeURIComponent(
+                    value
+                )}`
+            );
+            const data = await res.json();
+            setSearchResults(data);
+        } catch (err) {
+            console.error(err);
         }
-        setLoading(true);
-
-        const url = `http://localhost:8000/api/analysis?cryptoId=${selectedCryptoId}&period=${period}`;
-
-        fetch(url)
-            .then(async (response) => {
-                if (!response.ok) throw new Error(await response.text());
-                return response.json();
-            })
-            .then((data) => setAnalysis(data))
-            .catch((err) => setError(err.message))
-            .finally(() => setLoading(false));
     };
 
-    const renderIndicators = () => {
-        if (!analysis || !analysis.indicators) return null;
+    const loadOhlc = async (cryptoId) => {
+        const res = await fetch(`http://localhost:8000/api/data/daily/${cryptoId}`);
 
-        return (
-            <div className="mt-4 text-black bg-blue-50">
-                {Object.entries(analysis.indicators).map(([name, obj]) => (
-                    <div key={name} className="flex justify-between py-2 border-b border-gray-200">
-                        <span className="w-1/3 font-semibold text-black">{name}</span>
-                        <span className="w-1/3 text-black">
-              Value: {obj.value?.toFixed?.(3) || obj.value}
-            </span>
-                        <span className="w-1/3 text-black">Signal: {obj.signal}</span>
-                    </div>
-                ))}
-            </div>
+        if (!res.ok) {
+            throw new Error("Failed to load historical OHLC");
+        }
+
+        const data = await res.json();
+
+        const mapped = data.map((d) => ({
+            date: d.date,
+            open: d.open_price,
+            high: d.high_price,
+            low: d.low_price,
+            close: d.close_price,
+        }));
+
+        mapped.sort((a, b) => new Date(a.date) - new Date(b.date));
+        setOhlc(mapped);
+    };
+
+
+    const loadLstm = async (cryptoId) => {
+        const res = await fetch(
+            `http://localhost:8000/api/analysis/lstm?cryptoId=${encodeURIComponent(
+                cryptoId
+            )}`
         );
+
+        if (!res.ok) {
+            const errJson = await res.json().catch(() => ({}));
+            throw new Error(errJson.detail || "Failed to fetch LSTM forecast");
+        }
+
+        const data = await res.json();
+
+        const mappedForecast = (data.forecast || []).map((d) => ({
+            date: d.date,
+            open: d.open,
+            high: d.high,
+            low: d.low,
+            close: d.close,
+        }));
+
+        mappedForecast.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+        setForecast(mappedForecast);
+        setEvaluation(data.evaluation || null);
     };
+
+
+    const chooseCrypto = async (crypto) => {
+        setSelectedCrypto(crypto);
+        setQuery(crypto.name);
+        setSearchResults([]);
+        setError("");
+
+        setLoading(true);
+        try {
+            setOhlc([]);
+            setForecast([]);
+            setEvaluation(null);
+
+            await loadOhlc(crypto.id);
+            await loadLstm(crypto.id);
+        } catch (e) {
+            console.error(e);
+            setError(e.message || "Something went wrong");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+    const combined = [...ohlc, ...forecast].sort(
+        (a, b) => new Date(a.date) - new Date(b.date)
+    );
+
+
+    const getVisibleData = () => {
+        if (range === "ALL") return combined;
+
+        const n = parseInt(range, 10);
+        if (!combined || combined.length <= n) return combined;
+        return combined.slice(combined.length - n);
+    };
+
+    const visibleData = getVisibleData();
 
     return (
-        <div className="max-w-4xl mx-auto p-6 min-h-[80vh]">
-            <h1 className="text-2xl font-bold mb-6 text-white">Technical Analysis</h1>
-
-            <form onSubmit={handleGetAnalysis}>
-                <CryptoSearchBar
-                    query={query}
-                    searchResults={results}
-                    onSearchChange={handleSearchChange}
-                    onCryptoSelect={handleSelectCrypto}
-                />
-
-                <label className="block mb-1 font-medium text-white">
-                    Select timeframe
-                </label>
-                <select
-                    className="w-full p-3 border border-gray-300 rounded mb-4 text-black"
-                    value={period}
-                    onChange={(e) => setPeriod(e.target.value)}
-                >
-                    <option value="day">Day</option>
-                    <option value="week">Week</option>
-                    <option value="month">Month</option>
-                </select>
-
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-blue-50 text-darkblue py-3 rounded hover:bg-blue-100" >
-                    {loading ? "Loading..." : "Submit"}
-                </button>
-            </form>
+        <div
+            className="p-20 maxWidth:900 m-auto"
+            data-aos="fade-up"
+            data-aos-delay="600"
+        >
+            <CryptoSearchBar
+                query={query}
+                searchResults={searchResults}
+                onSearchChange={handleSearch}
+                onCryptoSelect={chooseCrypto}
+            />
 
             {error && (
-                <div className="mt-4 p-3 bg-red-100 text-black rounded">{error}</div>
-            )}
-
-            {analysis && (
-                <div className="mt-6 p-4 border rounded bg-blue-50 shadow text-black ">
-                    <h2 className="text-xl font-semibold mb-2 text-black">
-                        {analysis.cryptoId}
-                    </h2>
-                    <p className="text-black">Date: {analysis.date}</p>
-                    <p className="text-black">Price: {analysis.price}</p>
-                    <p className="font-bold mt-2 text-black">
-                        Overall Signal:{" "}
-                        <span className="text-black">{analysis.overall_signal}</span>
-                    </p>
-                    {renderIndicators()}
+                <div className="mt-4 p-3 rounded-lg bg-red-100 text-red-700">
+                    {error}
                 </div>
             )}
+
+            {(ohlc.length > 0 || forecast.length > 0) && !loading && (
+                <div className="mt-6 flex items-center justify-between gap-4 flex-wrap">
+                    <Range range={range} onChange={setRange} />
+                </div>
+            )}
+
+            <div className="mt-6">
+                <CandleChart visibleData={visibleData} loading={loading} />
+            </div>
+
         </div>
     );
-};
+}
 
-export default TechnicalAnalysisPage;
+export default LstmAnalysis;

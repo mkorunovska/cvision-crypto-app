@@ -5,7 +5,7 @@ const CandleTooltip = ({ active, payload, label }) => {
     const d = payload[0].payload;
 
     const format = (v) =>
-        typeof v === "number" ? v.toFixed(0) : "-";
+        typeof v === "number" ? v.toFixed(3) : "-";
 
     return (
       <div className=" bg-darkblue/60 p-10 border border-gray rounded">
