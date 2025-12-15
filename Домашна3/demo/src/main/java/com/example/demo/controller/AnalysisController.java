@@ -48,4 +48,26 @@ public class AnalysisController {
             return ResponseEntity.status(500).build();
         }
     }
+
+    @GetMapping("/onchain-sentiment")
+    public ResponseEntity<?> getOnchainSentiment(
+            @RequestParam String cryptoId,
+            @RequestParam(defaultValue = "day") String timeframe,
+            @RequestParam(defaultValue = "365") int daysBack,
+            @RequestParam(defaultValue = "40") int limit
+    ) {
+        String url = "http://localhost:8002/combined"
+                + "?cryptoId=" + cryptoId
+                + "&timeframe=" + timeframe
+                + "&days_back=" + daysBack
+                + "&limit=" + limit;
+
+        try {
+            Object body = restTemplate.getForObject(url, Object.class);
+            return ResponseEntity.ok(body);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).build();
+        }
+    }
 }
