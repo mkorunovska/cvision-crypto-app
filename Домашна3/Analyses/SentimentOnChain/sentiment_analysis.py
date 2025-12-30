@@ -100,7 +100,6 @@ def fetch_blockchain_chart(chart_name: str, days_back: int) -> pd.DataFrame:
     df["value"] = pd.to_numeric(df["y"], errors="coerce")
     df = df[["date", "value"]].dropna(subset=["date"]).sort_values("date").reset_index(drop=True)
 
-    # trim to days_back (rough)
     cutoff = pd.Timestamp.utcnow().tz_localize(None) - pd.Timedelta(days=days_back)
     df = df[df["date"] >= cutoff].reset_index(drop=True)
 

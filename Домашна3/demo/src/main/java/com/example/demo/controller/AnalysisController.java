@@ -56,7 +56,7 @@ public class AnalysisController {
             @RequestParam(defaultValue = "365") int daysBack,
             @RequestParam(defaultValue = "40") int limit
     ) {
-        String url = "http://localhost:8002/combined"
+        String url = "http://localhost:8001/combined"
                 + "?cryptoId=" + cryptoId
                 + "&timeframe=" + timeframe
                 + "&days_back=" + daysBack

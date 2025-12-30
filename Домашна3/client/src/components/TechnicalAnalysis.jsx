@@ -3,6 +3,19 @@ import CryptoSearchBar from "./CryptoSearchBar.jsx";
 import { getToken } from "../auth";
 
 
+
+function badgeClass(signal) {
+  switch (signal) {
+    case "BUY":
+      return "bg-green-100 text-green-800 border-green-200";
+    case "SELL":
+      return "bg-red-100 text-red-800 border-red-200";
+    default:
+      return "bg-yellow-100 text-yellow-800 border-yellow-200";
+  }
+}
+
+
 const TechnicalAnalysis = () => {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
@@ -144,7 +157,9 @@ const TechnicalAnalysis = () => {
           <p className="text-black">Price: {analysis.price}</p>
           <p className="font-bold mt-2 text-black">
             Overall Signal:{" "}
-            <span className="text-black">{analysis.overall_signal}</span>
+            {/* <span className="text-black">{analysis.overall_signal}</span> */}
+            <span className={`inline-flex items-center px-3 py-1 rounded-full border text-sm font-semibold ${badgeClass(analysis.overall_signal)}`}>
+              {analysis.overall_signal}</span>
           </p>
           {renderIndicators()}
         </div>
@@ -152,5 +167,6 @@ const TechnicalAnalysis = () => {
     </div>
   );
 };
+
 
 export default TechnicalAnalysis;
