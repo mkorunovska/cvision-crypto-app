@@ -1,4 +1,4 @@
-package com.example.demo.model.exceptions;
+package mk.ukim.finki.das.authservice.model.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

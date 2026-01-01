@@ -1,4 +1,4 @@
-package com.example.demo.model.exceptions;
+package mk.ukim.finki.das.authservice.model.exceptions;
 
 public class PasswordsDoNotMatchException extends RuntimeException {
     public PasswordsDoNotMatchException() {

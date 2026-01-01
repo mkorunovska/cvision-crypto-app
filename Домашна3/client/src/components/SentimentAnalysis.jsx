@@ -151,7 +151,7 @@ const SentimentAnalysis = () => {
           />
 
           {warn && (
-            <div className="mt-3 p-3 bg-blue-50 border border-darkblue-300 rounded text-black">
+            <div className="mt-3 mb-5 p-3 bg-blue-50 border border-darkblue-300 rounded text-black">
               {warn}
             </div>
           )}

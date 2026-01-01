@@ -1,4 +1,4 @@
-package com.example.demo.model.enums;
+package mk.ukim.finki.das.authservice.model.enums;
 
 import org.springframework.security.core.GrantedAuthority;
 

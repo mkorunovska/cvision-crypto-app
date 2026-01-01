@@ -1,6 +1,6 @@
-package com.example.demo.repository;
+package mk.ukim.finki.das.authservice.repository;
 
-import com.example.demo.model.User;
+import mk.ukim.finki.das.authservice.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

@@ -1,12 +1,12 @@
-package com.example.demo.service.impl;
+package mk.ukim.finki.das.authservice.service.impl;
 
-import com.example.demo.model.User;
-import com.example.demo.model.enums.Role;
-import com.example.demo.model.exceptions.InvalidArgumentsException;
-import com.example.demo.model.exceptions.PasswordsDoNotMatchException;
-import com.example.demo.model.exceptions.UsernameAlreadyExistsException;
-import com.example.demo.repository.UserRepository;
-import com.example.demo.service.UserService;
+import mk.ukim.finki.das.authservice.model.User;
+import mk.ukim.finki.das.authservice.model.enums.Role;
+import mk.ukim.finki.das.authservice.model.exceptions.InvalidArgumentsException;
+import mk.ukim.finki.das.authservice.model.exceptions.PasswordsDoNotMatchException;
+import mk.ukim.finki.das.authservice.model.exceptions.UsernameAlreadyExistsException;
+import mk.ukim.finki.das.authservice.repository.UserRepository;
+import mk.ukim.finki.das.authservice.service.UserService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;

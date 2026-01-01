@@ -1,8 +1,7 @@
-package com.example.demo.service;
+package mk.ukim.finki.das.authservice.service;
 
-
-import com.example.demo.model.User;
-import com.example.demo.model.enums.Role;
+import mk.ukim.finki.das.authservice.model.User;
+import mk.ukim.finki.das.authservice.model.enums.Role;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 public interface UserService extends UserDetailsService {
