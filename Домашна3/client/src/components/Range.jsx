@@ -1,6 +1,6 @@
 import React from "react";
 
-function RangeSelector({ range, onChange }) {
+const RangeSelector = ({ range, onChange }) => {
   if (!range) return null;
 
   return (

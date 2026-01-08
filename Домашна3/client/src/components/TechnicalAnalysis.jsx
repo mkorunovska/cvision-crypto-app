@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import CryptoSearchBar from "./CryptoSearchBar.jsx";
 import { getToken } from "../auth";
 
-
+const BASE = import.meta.env.VITE_BACKEND_HOST;
 
 function badgeClass(signal) {
   switch (signal) {
@@ -14,7 +14,6 @@ function badgeClass(signal) {
       return "bg-yellow-100 text-yellow-800 border-yellow-200";
   }
 }
-
 
 const TechnicalAnalysis = () => {
   const [query, setQuery] = useState("");
@@ -36,7 +35,7 @@ const TechnicalAnalysis = () => {
       return;
     }
 
-    fetch(`http://localhost:8000/api/crypto/search?query=${q}`)
+    fetch(`${BASE}/api/crypto/search?query=${q}`)
       .then((res) => res.json())
       .then((data) => setResults(data))
       .catch(() => setError("Error searching cryptocurrencies"));
@@ -66,14 +65,15 @@ const TechnicalAnalysis = () => {
 
     setLoading(true);
 
-    const url = `http://localhost:8000/api/analysis?cryptoId=${selectedCryptoId}&period=${period}`;
-
     try {
-      const response = await fetch(url, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `${BASE}/api/analysis?cryptoId=${selectedCryptoId}&period=${period}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (!response.ok) {
         const msg = await response.text();
@@ -82,13 +82,13 @@ const TechnicalAnalysis = () => {
 
       const data = await response.json();
       setAnalysis(data);
-    }catch(err){
+    } catch (err) {
       if (String(err.message).includes("401")) {
         setError("Session expired. Please login again.");
       } else {
         setError(err.message);
       }
-    }finally{
+    } finally {
       setLoading(false);
     }
   };
@@ -99,7 +99,10 @@ const TechnicalAnalysis = () => {
     return (
       <div className="mt-4 text-black bg-blue-50">
         {Object.entries(analysis.indicators).map(([name, obj]) => (
-          <div key={name} className="flex justify-between py-2 border-b border-gray-200">
+          <div
+            key={name}
+            className="flex justify-between py-2 border-b border-gray-200"
+          >
             <span className="w-1/3 font-semibold text-black">{name}</span>
             <span className="w-1/3 text-black">
               Value: {obj.value?.toFixed?.(3) || obj.value}
@@ -139,7 +142,8 @@ const TechnicalAnalysis = () => {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-50 text-darkblue py-3 rounded hover:bg-blue-100" >
+          className="w-full bg-blue-50 text-darkblue py-3 rounded hover:bg-blue-100"
+        >
           {loading ? "Loading..." : "Submit"}
         </button>
       </form>
@@ -158,8 +162,13 @@ const TechnicalAnalysis = () => {
           <p className="font-bold mt-2 text-black">
             Overall Signal:{" "}
             {/* <span className="text-black">{analysis.overall_signal}</span> */}
-            <span className={`inline-flex items-center px-3 py-1 rounded-full border text-sm font-semibold ${badgeClass(analysis.overall_signal)}`}>
-              {analysis.overall_signal}</span>
+            <span
+              className={`inline-flex items-center px-3 py-1 rounded-full border text-sm font-semibold ${badgeClass(
+                analysis.overall_signal
+              )}`}
+            >
+              {analysis.overall_signal}
+            </span>
           </p>
           {renderIndicators()}
         </div>
@@ -167,6 +176,5 @@ const TechnicalAnalysis = () => {
     </div>
   );
 };
-
 
 export default TechnicalAnalysis;

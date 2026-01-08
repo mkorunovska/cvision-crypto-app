@@ -26,7 +26,7 @@ def load_data(crypto_id: str) -> pd.DataFrame:
             high_price  AS high,
             low_price   AS low,
             close_price AS close,
-            volume_24h   AS volume
+            volume_24  AS volume
         FROM daily_market_data
         WHERE crypto_id = %(crypto_id)s
         ORDER BY date;

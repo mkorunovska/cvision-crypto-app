@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
+const BASE = import.meta.env.VITE_BACKEND_HOST;
+
+
 const Register = () => {
   const navigate = useNavigate();
 
@@ -34,7 +37,7 @@ const Register = () => {
 
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/api/auth/register", {
+      const res = await fetch(`${BASE}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),

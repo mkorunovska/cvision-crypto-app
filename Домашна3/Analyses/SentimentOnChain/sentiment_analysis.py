@@ -41,8 +41,24 @@ GLASSNODE_METRICS = {
 
 
 SENT_MODEL = os.getenv("SENTIMENT_MODEL", "ProsusAI/finbert")
-sent_pipe = pipeline("text-classification", model=SENT_MODEL, tokenizer=SENT_MODEL, truncation=True)
+# sent_pipe = pipeline("text-classification", model=SENT_MODEL, tokenizer=SENT_MODEL, truncation=True)
 
+
+#------ ADDED get sent
+_sent_pipe = None
+
+def get_sent_pipe():
+    global _sent_pipe
+    if _sent_pipe is None:
+        _sent_pipe = pipeline(
+            "text-classification",
+            model=SENT_MODEL,
+            tokenizer=SENT_MODEL,
+            truncation=True,
+            framework="pt",
+            device=-1
+        )
+    return _sent_pipe
 
 def epoch_range(days_back: int) -> Tuple[int, int]:
     u = int(time.time())
@@ -181,7 +197,8 @@ def sentiment_transformers(headlines: List[str]) -> Dict[str, Any]:
             "examples": [],
         }
 
-    preds = sent_pipe(headlines)
+    # preds = sent_pipe(headlines)
+    preds = get_sent_pipe()(headlines)
 
     pos = neu = neg = 0
     score_sum = 0.0

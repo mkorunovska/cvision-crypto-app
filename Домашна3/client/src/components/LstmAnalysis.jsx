@@ -4,7 +4,10 @@ import Range from "./Range.jsx";
 import CandleChart from "./CandleChart.jsx";
 import { getToken } from "../auth.js";
 
-function LstmAnalysis() {
+const BASE = import.meta.env.VITE_BACKEND_HOST;
+
+
+const LstmAnalysis = () => {
   const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [selectedCrypto, setSelectedCrypto] = useState(null);
@@ -31,7 +34,7 @@ function LstmAnalysis() {
 
     try {
       const res = await fetch(
-        `http://localhost:8000/api/crypto/search?query=${encodeURIComponent(
+        `${BASE}/api/crypto/search?query=${encodeURIComponent(
           value
         )}`
       );
@@ -49,7 +52,7 @@ function LstmAnalysis() {
     }
 
     const res = await fetch(
-      `http://localhost:8000/api/data/daily/${cryptoId}`,
+      `${BASE}/api/data/daily/${cryptoId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -82,7 +85,7 @@ function LstmAnalysis() {
     }
 
     const res = await fetch(
-      `http://localhost:8000/api/analysis/lstm?cryptoId=${encodeURIComponent(cryptoId)}`,
+      `${BASE}/api/analysis/lstm?cryptoId=${encodeURIComponent(cryptoId)}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

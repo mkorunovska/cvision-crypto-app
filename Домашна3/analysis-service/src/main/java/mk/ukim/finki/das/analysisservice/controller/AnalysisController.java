@@ -15,18 +15,24 @@ import tools.jackson.databind.JsonNode;
 @CrossOrigin(origins="*")
 public class AnalysisController {
     private final RestTemplate restTemplate;
-    private final String baseUrl;
+    private final String technicalUrl;
+    private final String lstmUrl;
+    private final String sentimentUrl;
 
     public AnalysisController(RestTemplate restTemplate,
-                              @Value("${python.analysis.base-url}") String baseUrl) {
+                              @Value("${python.technical.base-url}") String technicalUrl,
+                              @Value("${python.lstm.base-url}") String lstmUrl,
+                              @Value("${python.sentiment.base-url}")String sentimentUrl) {
         this.restTemplate = restTemplate;
-        this.baseUrl = baseUrl;
+        this.technicalUrl = technicalUrl;
+        this.lstmUrl = lstmUrl;
+        this.sentimentUrl = sentimentUrl;
     }
 
     @GetMapping
     public ResponseEntity<JsonNode> getTechnicalAnalysis(@RequestParam String cryptoId,
                                                          @RequestParam String period) {
-        String url = baseUrl + "/technical_analysis/" + cryptoId + "?period=" + period;
+        String url = technicalUrl + "/technical_analysis/" + cryptoId + "?period=" + period;
 
         try{
             return ResponseEntity.ok(restTemplate.getForObject(url, JsonNode.class));
@@ -41,7 +47,7 @@ public class AnalysisController {
     
     @GetMapping("/lstm")
     public ResponseEntity<JsonNode> getLstmAnalysis(@RequestParam String cryptoId) {
-        String url = baseUrl + "/lstm_analysis/" + cryptoId;
+        String url = lstmUrl + "/lstm_analysis/" + cryptoId;
 
         try {
             return ResponseEntity.ok(restTemplate.getForObject(url, JsonNode.class));
@@ -59,7 +65,7 @@ public class AnalysisController {
             @RequestParam(defaultValue = "365") int daysBack,
             @RequestParam(defaultValue = "40") int limit
     ) {
-        String url = baseUrl + "/combined"
+        String url = sentimentUrl + "/combined"
                 + "?cryptoId=" + cryptoId
                 + "&timeframe=" + timeframe
                 + "&days_back=" + daysBack

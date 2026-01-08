@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Link } from "react-router-dom";
 
+const BASE = import.meta.env.VITE_BACKEND_HOST;
+
+
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -13,7 +16,7 @@ const Login = () => {
     setError("");
 
     try {
-      const res = await fetch("http://localhost:8000/api/auth/login", {
+      const res = await fetch(`${BASE}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

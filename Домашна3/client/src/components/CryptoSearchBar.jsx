@@ -1,6 +1,6 @@
 import React from "react";
 
-function CryptoSearchBar({ query, searchResults, onSearchChange, onCryptoSelect }) {
+const CryptoSearchBar = ({ query, searchResults, onSearchChange, onCryptoSelect }) => {
   
   return (
     <div>

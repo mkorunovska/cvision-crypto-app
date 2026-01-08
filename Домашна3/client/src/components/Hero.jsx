@@ -28,7 +28,7 @@ const Hero = () => {
             </p>
             <button onClick={goToDetails} className='btn gap-x-4 pl-6 text-sm lg:text-base hover:bg-white' data-aos='fade-down'
             data-aos-delay='700' >
-              Try for free
+              Start now
               <IoIosArrowDroprightCircle className="text-2xl"/>
               </button>
           </div>

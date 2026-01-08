@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+
+numpy
+pandas
+scipy
+ta
+scikit-learn
+
+feedparser
+requests
+sqlalchemy
+psycopg2-binary
+python-dotenv
+tf-keras

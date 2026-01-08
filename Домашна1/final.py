@@ -11,6 +11,7 @@ import time
 COINGECKO_API_BASE = "https://api.coingecko.com/api/v3"
 COINGECKO_FRONTEND_BASE = "https://www.coingecko.com"
 LOOKBACK_YEARS = 10
+_COINS_CACHE = None
 
 @dataclass
 class CoinMeta:
@@ -26,8 +27,22 @@ def convert_date(ts_ms: float) -> date:
     return dt.date()
 
 
-def fetch_markets_page(page: int, per_page: int = 250) -> list[dict]:
+# def fetch_markets_page(page: int, per_page: int = 250) -> list[dict]:
+#     url = f"{COINGECKO_API_BASE}/coins/markets"
+#     params = {
+#         "vs_currency": "usd",
+#         "order": "market_cap_desc",
+#         "per_page": per_page,
+#         "page": page,
+#         "sparkline": "false",
+#     }
+#     resp = requests.get(url, params=params, timeout=30)
+#     resp.raise_for_status()
+#     time.sleep(1.2)
+#     return resp.json()
 
+
+def fetch_markets_page(page: int, per_page: int = 250, retries: int = 8) -> list[dict]:
     url = f"{COINGECKO_API_BASE}/coins/markets"
     params = {
         "vs_currency": "usd",
@@ -36,12 +51,31 @@ def fetch_markets_page(page: int, per_page: int = 250) -> list[dict]:
         "page": page,
         "sparkline": "false",
     }
-    resp = requests.get(url, params=params, timeout=30)
-    resp.raise_for_status()
-    return resp.json()
 
+    for attempt in range(retries):
+        resp = requests.get(url, params=params, timeout=30)
+
+        if resp.status_code == 429:
+            retry_after = resp.headers.get("Retry-After")
+            if retry_after and retry_after.isdigit():
+                wait = int(retry_after)
+            else:
+                wait = min(60, 2 ** (attempt + 1))
+
+            print(f"[429] /coins/markets page={page} -> sleeping {wait}s (attempt {attempt+1}/{retries})")
+            time.sleep(wait)
+            continue
+
+        resp.raise_for_status()
+        time.sleep(1.5)
+        return resp.json()
+
+    raise RuntimeError(f"Rate limit: failed to fetch markets page={page} after {retries} retries")
 
 def get_cryptocurrencies() -> List[CoinMeta]:
+    global _COINS_CACHE
+    if _COINS_CACHE is not None:
+        return _COINS_CACHE
 
     all_coins: List[CoinMeta] = []
 
@@ -57,13 +91,52 @@ def get_cryptocurrencies() -> List[CoinMeta]:
                 )
             )
 
+    _COINS_CACHE = all_coins
     return all_coins
 
+# def get_cryptocurrencies() -> List[CoinMeta]:
+#
+#     all_coins: List[CoinMeta] = []
+#
+#     for page in range(1, 5):
+#         rows = fetch_markets_page(page=page, per_page=250)
+#         for row in rows:
+#             all_coins.append(
+#                 CoinMeta(
+#                     id=row["id"],
+#                     symbol=row["symbol"],
+#                     name=row["name"],
+#                     market_cap_rank=row.get("market_cap_rank"),
+#                 )
+#             )
+#
+#     return all_coins
+
+def save_cryptocurrencies(coins: List[CoinMeta]):
+    if not coins:
+        print("Filter 1: No coins to save.")
+        return
+
+    rows = [(c.id, c.symbol, c.name) for c in coins]
+
+    sql = """
+    INSERT INTO cryptocurrencies (id, symbol, name)
+    VALUES %s
+    ON CONFLICT (id) DO UPDATE
+        SET symbol = EXCLUDED.symbol,
+            name   = EXCLUDED.name;
+    """
+
+    conn = connect_db()
+    cur = conn.cursor()
+    execute_values(cur, sql, rows)
+    conn.commit()
+    cur.close()
+    conn.close()
 
 def build_meta_by_id() -> dict[str, CoinMeta]:
     coins = get_cryptocurrencies()
     return {c.id: c for c in coins}
-
 
 def fetch_ohlc_data(coin_meta: CoinMeta) -> list[list[float]]:
 
@@ -81,6 +154,11 @@ def fetch_ohlc_data(coin_meta: CoinMeta) -> list[list[float]]:
     }
 
     resp = requests.get(url, headers=headers, timeout=60)
+    #-------NEW------------
+    if resp.status_code == 403:
+        print(f"[403] Forbidden OHLC for {coin_meta.id} (rank={numeric_id}). Skipping this coin.")
+        return []
+
     resp.raise_for_status()
     data = resp.json()
 
@@ -111,13 +189,9 @@ def fetch_volume_data(coin_meta: CoinMeta) -> dict:
 
 
 def daily_ohlcv_data(coin_meta: CoinMeta, start_date: date):
-
-    print(f"Fetching OHLC for {coin_meta.id}.")
-
     ohlc_list = fetch_ohlc_data(coin_meta)
-
-
     volumes_by_date = {}
+
     try:
         stats_json = fetch_volume_data(coin_meta)
         for ts, vol in stats_json.get("total_volumes", []):
@@ -152,13 +226,10 @@ def daily_ohlcv_data(coin_meta: CoinMeta, start_date: date):
                 float(c),
                 volume_24h,
                 market_cap,
-                liquidity,
             )
         )
-
     rows.sort(key=lambda r: r[1])
     return rows
-
 
 def save_daily_rows(rows):
 
@@ -170,7 +241,7 @@ def save_daily_rows(rows):
     INSERT INTO daily_market_data (
         crypto_id, date,
         open_price, high_price, low_price, close_price,
-        volume_24h, market_cap, liquidity
+        volume_24h, market_cap
     )
     VALUES %s
     ON CONFLICT (crypto_id, date) DO UPDATE
@@ -179,8 +250,8 @@ def save_daily_rows(rows):
             low_price   = EXCLUDED.low_price,
             close_price = EXCLUDED.close_price,
             volume_24h  = COALESCE(EXCLUDED.volume_24h, daily_market_data.volume_24h),
-            market_cap  = EXCLUDED.market_cap,
-            liquidity   = EXCLUDED.liquidity;
+            market_cap  = EXCLUDED.market_cap;
+
     """
 
     conn = connect_db()
@@ -189,8 +260,6 @@ def save_daily_rows(rows):
     conn.commit()
     cur.close()
     conn.close()
-    print(f"Saved {len(rows)} rows to daily_market_data.")
-
 
 def run_filter2():
 
@@ -206,7 +275,7 @@ def run_filter2():
     cur.execute("SELECT id, symbol, name FROM cryptocurrencies;")
 
     coins = cur.fetchall()
-    jobs_for_filter3 = []
+    data_for_filter3 = []
 
     print(f"Filter 2: Processing {len(coins)} coins...")
 
@@ -222,6 +291,10 @@ def run_filter2():
         )
         (last_date,) = cur.fetchone()
 
+        ##------NEW----------------
+        if isinstance(last_date, str):
+            last_date = date.fromisoformat(last_date)
+
         if last_date is None:
 
             start_date = ten_years_ago
@@ -233,9 +306,8 @@ def run_filter2():
                 last_date_inserted = rows[-1][1]
                 print(f"Latest date inserted for {coin_id}: {last_date_inserted}")
         else:
-
             start_date = last_date + timedelta(days=1)
-            jobs_for_filter3.append(
+            data_for_filter3.append(
                 {
                     "id": coin_id,
                     "symbol": symbol,
@@ -252,27 +324,21 @@ def run_filter2():
     cur.close()
     conn.close()
 
-    return jobs_for_filter3
+    return data_for_filter3
 
-def run_filter3():
-
-    jobs = run_filter2()
-
-    if not jobs:
+def run_filter3(data):
+    if not data:
         print("Filter 3: No coins need backfill.")
         return
-
 
     meta_by_id = build_meta_by_id()
     print(f"Filter 3: CoinMeta for {len(meta_by_id)} coins.\n")
 
-
     processed = 0
-
-    for job in jobs:
-        coin_id = job["id"]
-        start_date = job["start_date"]
-        last_date = job["last_date"]
+    for d in data:
+        coin_id = d["id"]
+        start_date = d["start_date"]
+        last_date = d["last_date"]
 
         coin_meta = meta_by_id.get(coin_id)
         if not coin_meta:
@@ -280,7 +346,6 @@ def run_filter3():
             continue
 
         rows = daily_ohlcv_data(coin_meta, start_date)
-
         if not rows:
             print(f"Filter 3: No new rows for {coin_id} after {last_date}.")
         else:
@@ -288,16 +353,60 @@ def run_filter3():
 
         processed += 1
 
-
     print(f"\nFilter 3: finished backfill for {processed} coins.")
 
 
+# def run_filter3():
+#     data = run_filter2()
+#
+#     if not data:
+#         print("Filter 3: No coins need backfill.")
+#         return
+#
+#
+#     meta_by_id = build_meta_by_id()
+#     print(f"Filter 3: CoinMeta for {len(meta_by_id)} coins.\n")
+#
+#     processed = 0
+#
+#     for d in data:
+#         coin_id = d["id"]
+#         start_date = d["start_date"]
+#         last_date = d["last_date"]
+#
+#         coin_meta = meta_by_id.get(coin_id)
+#         if not coin_meta:
+#             print(f"Filter 3: Error: No CoinMeta for {coin_id}, skipping.")
+#             continue
+#
+#         rows = daily_ohlcv_data(coin_meta, start_date)
+#
+#         if not rows:
+#             print(f"Filter 3: No new rows for {coin_id} after {last_date}.")
+#         else:
+#             save_daily_rows(rows)
+#         processed += 1
+#
+#     print(f"\nFilter 3: finished backfill for {processed} coins.")
+
+
+# if __name__ == "__main__":
+#     start_time = time.perf_counter()
+#     run_filter2()
+#     time.sleep(10)
+#     run_filter3()
+#     end_time = time.perf_counter()
+#     elapsed = end_time - start_time
+#
+#     print(f"\nTime: {elapsed} seconds.")
+
 if __name__ == "__main__":
     start_time = time.perf_counter()
-    run_filter2()
-    run_filter3()
-    end_time = time.perf_counter()
-    elapsed = end_time - start_time
 
-    print(f"\nTime: {elapsed} seconds.")
+    data_for_filter3 = run_filter2()
+    time.sleep(10)
+    run_filter3(data_for_filter3)
+
+    end_time = time.perf_counter()
+    print(f"\nTime: {end_time - start_time} seconds.")
 

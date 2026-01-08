@@ -3,7 +3,7 @@ import CryptoSearchBar from "../components/CryptoSearchBar";
 import { getToken } from "../auth.js";
 
 const SUPPORTED = new Set(["bitcoin", "ethereum"]);
-const SPRING_BASE = "http://localhost:8000";
+const BASE = import.meta.env.VITE_BACKEND_HOST;
 
 function badgeClass(signal) {
   switch (signal) {
@@ -45,7 +45,7 @@ const SentimentAnalysis = () => {
       limit: "40",
     });
 
-    return `${SPRING_BASE}/api/analysis/onchain-sentiment?${params.toString()}`;
+    return `${BASE}/api/analysis/onchain-sentiment?${params.toString()}`;
   }, [selectedCrypto]);
 
   const onSearchChange = async (e) => {
@@ -59,7 +59,7 @@ const SentimentAnalysis = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:8000/api/crypto/search?query=${encodeURIComponent(
+        `${BASE}/api/crypto/search?query=${encodeURIComponent(
           value
         )}`
       );
@@ -105,15 +105,13 @@ const SentimentAnalysis = () => {
       limit: "40",
     });
 
-    const url = `${SPRING_BASE}/api/analysis/onchain-sentiment?${params.toString()}`;
-
     try {
       const token = getToken();
       if (!token) {
         throw new Error("Not logged in. Please login.");
       }
 
-      const res = await fetch(url, {
+      const res = await fetch(`${BASE}/api/analysis/onchain-sentiment?${params.toString()}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

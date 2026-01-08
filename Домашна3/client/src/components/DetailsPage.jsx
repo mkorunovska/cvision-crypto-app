@@ -4,7 +4,10 @@ import Range from "./Range.jsx";
 import CandleChart from "./CandleChart.jsx";
 import { getToken } from "../auth.js";
 
-function DetailsPage() {
+const BASE = import.meta.env.VITE_BACKEND_HOST;
+
+
+const DetailsPage = () => {
   const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
   const [selectedCrypto, setSelectedCrypto] = useState(null);
@@ -22,9 +25,7 @@ function DetailsPage() {
     }
 
     const res = await fetch(
-      `http://localhost:8000/api/crypto/search?query=${encodeURIComponent(
-        value
-      )}`
+      `${BASE}/api/crypto/search?query=${encodeURIComponent(value)}`
     );
     const data = await res.json();
     setSearchResults(data);
@@ -46,7 +47,7 @@ function DetailsPage() {
     }
 
     const res = await fetch(
-      `http://localhost:8000/api/data/daily/${cryptoId}`,
+      `${BASE}/api/data/daily/${cryptoId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

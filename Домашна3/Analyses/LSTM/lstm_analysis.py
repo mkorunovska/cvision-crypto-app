@@ -4,9 +4,11 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import MinMaxScaler
 
-import keras
-from keras.models import Sequential
-from keras.layers import LSTM, Dense, Input
+
+from tensorflow import keras
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense, Input
+
 
 from sklearn.metrics import mean_squared_error, mean_absolute_percentage_error, r2_score
 
@@ -35,7 +37,7 @@ def parse_data(crypto_id: str) -> pd.DataFrame:
             high_price  AS high,
             low_price   AS low,
             close_price AS close,
-            volume_24h  AS volume
+            volume_24 AS volume
         FROM daily_market_data
         WHERE crypto_id = %(crypto_id)s
         ORDER BY date;
@@ -116,13 +118,19 @@ def predictor_ohlcv(
         Dense(n_features, activation="linear")
     ])
 
+    # model.compile(
+    #     loss=keras.losses.MeanSquaredError(),
+    #     optimizer=keras.optimizers.Adam(),
+    #     metrics=[
+    #         keras.metrics.MeanSquaredError(),
+    #         keras.metrics.MeanAbsoluteError()
+    #     ]
+    # )
+
     model.compile(
-        loss=keras.losses.MeanSquaredError(),
-        optimizer=keras.optimizers.Adam(),
-        metrics=[
-            keras.metrics.MeanSquaredError(),
-            keras.metrics.MeanAbsoluteError()
-        ]
+        loss="mse",
+        optimizer="adam",
+        metrics=["mse", "mae"]
     )
 
     model.fit(

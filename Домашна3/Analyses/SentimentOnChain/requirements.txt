@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+
+requests
+feedparser
+
+numpy
+pandas
+
+transformers
+torch

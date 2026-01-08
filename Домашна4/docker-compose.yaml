@@ -1,0 +1,134 @@
+services:
+  database:
+    image: postgres:16.1
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Magdalena
+      POSTGRES_DB: cryptocurrency_db
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "54324:5432"
+    container_name: database
+
+  scraper:
+    build:
+      context: ../Домашна1
+      dockerfile: Dockerfile
+    container_name: scraper
+    env_file:
+      - ../Домашна1/.env.docker
+    depends_on:
+      - database
+    restart: "no"
+    profiles: ["tools"]
+
+  backend:
+    build:
+      context: ../Домашна3/demo
+      dockerfile: Dockerfile
+    container_name: backend
+    ports:
+      - "9090:8000"
+    environment:
+      - spring.datasource.url=jdbc:postgresql://database:5432/cryptocurrency_db
+      - server.port=8000
+      - services.auth.url=http://auth-service:8081
+      - services.analysis.url=http://analysis-service:8082
+
+    depends_on:
+      - database
+
+  auth-service:
+    build:
+      context: ../Домашна3/auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    ports:
+      - "9091:8081"
+    environment:
+      - spring.datasource.url=jdbc:postgresql://database:5432/cryptocurrency_db
+      - server.port=8081
+    depends_on:
+      - database
+
+  technical-api:
+    build:
+      context: ../Домашна3/Analyses/TechnicalAnalysis
+      dockerfile: Dockerfile
+    container_name: technical-api
+    env_file:
+      - ../Домашна3/Analyses/TechnicalAnalysis/.env.docker
+    ports:
+      - "9093:8001"
+    environment:
+      - HF_HOME=/app/.hf
+      - TOKENIZERS_PARALLELISM=false
+      - OMP_NUM_THREADS=1
+      - MKL_NUM_THREADS=1
+      - TF_CPP_MIN_LOG_LEVEL=2
+    volumes:
+      - hf-cache:/app/.hf
+
+  lstm-api:
+    build:
+      context: ../Домашна3/Analyses/LSTM
+      dockerfile: Dockerfile
+    container_name: lstm-api
+    env_file:
+      - ../Домашна3/Analyses/LSTM/.env.docker
+    ports:
+      - "9094:8002"
+    environment:
+      - HF_HOME=/app/.hf
+      - TOKENIZERS_PARALLELISM=false
+      - OMP_NUM_THREADS=1
+      - MKL_NUM_THREADS=1
+      - TF_CPP_MIN_LOG_LEVEL=2
+    volumes:
+      - hf-cache:/app/.hf
+
+  sentiment-api:
+    build:
+      context: ../Домашна3/Analyses/SentimentOnChain
+      dockerfile: Dockerfile
+    container_name: sentiment-api
+    ports:
+      - "9095:8003"
+    environment:
+      - TRANSFORMERS_NO_TF=1
+      - TOKENIZERS_PARALLELISM=false
+      - HF_HOME=/app/.hf
+    volumes:
+      - hf-cache:/app/.hf
+
+  analysis-service:
+    build:
+      context: ../Домашна3/analysis-service
+      dockerfile: Dockerfile
+    container_name: analysis-service
+    ports:
+      - "9092:8082"
+    environment:
+      - server.port=8082
+      - python.technical.base-url=http://technical-api:8001
+      - python.lstm.base-url=http://lstm-api:8002
+      - python.sentiment.base-url=http://sentiment-api:8003
+
+  frontend:
+    build:
+      context: ../Домашна3/client
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ../Домашна3/client:/app
+      - /app/node_modules
+    environment:
+      - "VITE_BACKEND_HOST=http://localhost:9090"
+
+volumes:
+  db-data:
+  hf-cache:
